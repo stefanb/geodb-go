@@ -3,8 +3,55 @@
     
 
 GeoDB-Go is the official Golang gRPC client for [GeoDb - A Persistent Geospatial Database](https://github.com/autom8ter/geodb)
+## Methodology
+
+- Clients may query the database in three ways keys(unique ids), prefix-scanning, or regex 
+- Clients can open and execute logic on object geolocation streams that can be filtered by keys(unique ids), prefix-scanning, or regex
+- Clients can manage object-centric, dynamic geofences(trackers) that can be used to track an objects location in relation to other registered objects
+- Haversine formula is used to calculate whether objects are overlapping using object coordinates and their radius.
+- If the server has a google maps api key present in its environmental variables, all geofencing(trackers) will be enhanced with html directions, estimated time of arrival, and more.
+
+## Use Cases
+- Ride Sharing
+- Food Delivery
+- Asset Tracking
+
 
 ## Getting Started
+
+### Docker Compose - Server
+
+```yaml
+version: '3.7'
+services:
+  db:
+    image: colemanword/geodb:latest
+    env_file:
+      - geodb.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - default:/tmp/geodb
+    networks:
+      default:
+        aliases:
+          - geodb
+networks:
+  default:
+
+volumes:
+  default:
+
+```
+
+Up:
+
+    docker-compose -f docker-compose.yml pull
+    docker-compose -f docker-compose.yml up -d
+
+Down:
+
+    docker-compose -f docker-compose.yml down --remove-orphans
 
 ### Creating a Client
 
