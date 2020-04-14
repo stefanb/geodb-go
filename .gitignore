@@ -2,3 +2,4 @@ vendor
 .idea
 geodb.env
 test_results.txt
+geodbctl

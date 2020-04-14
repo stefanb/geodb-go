@@ -272,6 +272,25 @@ Pretty JSON Response:
 }
 ```
 
+#### Streaming Object Updates
+
+```go
+if err := client.Stream(context.Background(), &api.StreamRequest{
+		ClientId:             "", //if youre client is scaling horizontally, add a clientID so that messages are streamed to only one instance, otherwise leave empty
+		Keys:                 nil, //add object keys for targeted object streams, leave empty to stream all object updates
+	}, func(ctx context.Context, stream geodb_go.ObjectStreamGetter, err error) { //this function is executed on each object in the stream as they are received
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+		obj := stream.GetObject() //an object detail has entered the stream
+		log.Println(obj.String()) //do stuff with object
+	}); err != nil {
+		log.Fatal(err.Error())
+		return
+	}
+```
+
 ### Getting Geolocation Data(Objects)
 
 #### Get All Objects
@@ -305,6 +324,17 @@ resp, err := client.GetRegex(context.Background(), &api.GetRegexRequest{
 for _, object := range resp.Objects {
 		fmt.Println(object.String())
 	}
+```
+
+#### Scan a Geolocation Boundary
+```go
+//ScanBound scans a give geolocation boundary for objects, use regex/prefix methods to filter objects
+	resp, err := client.ScanBound(context.Background(), &api.ScanBoundRequest{
+		Bound: &api.Bound{
+			Corner:               cheyenneWhyoming, //top left corner
+			OppositeCorner:       pepsiCenter,//bottom right corner
+		},
+	})
 ```
 ## API Docs
 

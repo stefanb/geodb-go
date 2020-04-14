@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	file *os.File
+	file       *os.File
 	client     *geodb_go.Client
 	err        error
 	coorsField = &api.Point{
@@ -32,9 +32,13 @@ var (
 		Lat: 39.74626922607422,
 		Lon: -104.97151184082031,
 	}
+	cheyenneWhyoming = &api.Point{
+		Lat: 41.1353874206543,
+		Lon: -104.8226089477539,
+	}
 	objects = []*api.Object{{
-		Key: "testing_coors",
-		Point: coorsField,
+		Key:    "testing_coors",
+		Point:  coorsField,
 		Radius: 100,
 		Tracking: &api.ObjectTracking{
 			TravelMode: api.TravelMode_Driving,
@@ -48,8 +52,8 @@ var (
 	},
 		{
 
-			Key: "testing_pepsi_center",
-			Point: pepsiCenter,
+			Key:    "testing_pepsi_center",
+			Point:  pepsiCenter,
 			Radius: 100,
 			Tracking: &api.ObjectTracking{
 				TravelMode: api.TravelMode_Driving,
@@ -70,8 +74,8 @@ var (
 			ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
 		},
 		{
-			Key: "malls_cherry_creek_mall",
-			Point: cherryCreekMall,
+			Key:    "malls_cherry_creek_mall",
+			Point:  cherryCreekMall,
 			Radius: 100,
 			Tracking: &api.ObjectTracking{
 				TravelMode: api.TravelMode_Driving,
@@ -240,4 +244,55 @@ func TestClient_GetRegex(t *testing.T) {
 		t.Fatal("expected 1 result")
 	}
 	prettyJson("TestClient_GetRegex", resp)
+}
+
+func TestClient_GetKeys(t *testing.T) {
+	resp, err := client.GetKeys(context.Background(), &api.GetKeysRequest{})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(resp.Keys) != len(objects) {
+		t.Fatalf("expected %v result", len(objects))
+	}
+	prettyJson("TestClient_GetKeys", resp)
+}
+
+func TestClient_GetPrefixKeys(t *testing.T) {
+	resp, err := client.GetPrefixKeys(context.Background(), &api.GetPrefixKeysRequest{
+		Prefix: "malls_",
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(resp.Keys) != 1 {
+		t.Fatal("expected 1 result")
+	}
+	prettyJson("TestClient_GetPrefixKeys", resp)
+}
+
+func TestClient_GetRegexKeys(t *testing.T) {
+	resp, err := client.GetRegexKeys(context.Background(), &api.GetRegexKeysRequest{
+		Regex: "malls_*",
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(resp.Keys) != 1 {
+		t.Fatal("expected 1 result")
+	}
+	prettyJson("TestClient_GetRegexKeys", resp)
+}
+
+func TestClient_ScanBound(t *testing.T) {
+	//ScanBound scans a give geolocation boundary for objects, use regex/prefix methods to filter objects
+	resp, err := client.ScanBound(context.Background(), &api.ScanBoundRequest{
+		Bound: &api.Bound{
+			Corner:         cheyenneWhyoming, //top left corner
+			OppositeCorner: pepsiCenter,      //bottom right corner
+		},
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	prettyJson("TestClient_ScanBound", resp)
 }
