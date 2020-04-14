@@ -131,8 +131,8 @@ Pretty JSON Response:
                 },
                 "get_address": true,
                 "get_timezone": true,
-                "expires_unix": 1586897609,
-                "updated_unix": 1586897310
+                "expires_unix": 1586900513,
+                "updated_unix": 1586900213
             },
             "address": {
                 "state": "Colorado",
@@ -167,15 +167,16 @@ Pretty JSON Response:
                         },
                         "get_address": true,
                         "get_timezone": true,
-                        "expires_unix": 1586897609,
-                        "updated_unix": 1586897310
+                        "expires_unix": 1586900513,
+                        "updated_unix": 1586900213
                     },
                     "distance": 5843.275955551314,
                     "direction": {
                         "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogMTAwMCBDaG9wcGVyIENpciwgRGVudmVyLCBDTyA4MDIwNCwgVVNBPC9oNT5IZWFkIDxiPnNvdXRoPC9iPiAtIDAuMyBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+U3RlZWxlIFN0PC9iPiAtIDQzMyBmdDxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+RSAxc3QgQXZlPC9iPiAtIDAuOSBtaTxicj5Db250aW51ZSBzdHJhaWdodCB0byBzdGF5IG9uIDxiPkUgMXN0IEF2ZTwvYj4gLSAwLjMgbWk8YnI+Q29udGludWUgb250byA8Yj5TcGVlciBCbHZkPC9iPiAtIDIuOSBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+Q2hvcHBlciBDaXI8L2I+IC0gMzk3IGZ0PGJyPlR1cm4gPGI+cmlnaHQ8L2I+IG9udG8gPGI+MTF0aCBTdDwvYj4vPHdici8+PGI+MTJ0aCBTdDwvYj4gLSAzNTggZnQ8YnI+U2xpZ2h0IDxiPmxlZnQ8L2I+IC0gMC4xIG1pPGJyPg==",
-                        "eta": 7581
+                        "eta": 15,
+                        "travel_dist": 7581
                     },
-                    "timestamp_unix": 1586897310
+                    "timestamp_unix": 1586900213
                 }
             ]
         },
@@ -193,7 +194,7 @@ Pretty JSON Response:
                 },
                 "get_address": true,
                 "get_timezone": true,
-                "updated_unix": 1586897309
+                "updated_unix": 1586900213
             },
             "address": {
                 "state": "Colorado",
@@ -228,8 +229,8 @@ Pretty JSON Response:
                 },
                 "get_address": true,
                 "get_timezone": true,
-                "expires_unix": 1586897609,
-                "updated_unix": 1586897310
+                "expires_unix": 1586900513,
+                "updated_unix": 1586900213
             },
             "address": {
                 "state": "Colorado",
@@ -255,14 +256,15 @@ Pretty JSON Response:
                         },
                         "get_address": true,
                         "get_timezone": true,
-                        "updated_unix": 1586897309
+                        "updated_unix": 1586900213
                     },
                     "distance": 1439.4645850870015,
                     "direction": {
                         "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogMjAwMSBCbGFrZSBTdCwgRGVudmVyLCBDTyA4MDIwNSwgVVNBPC9oNT5IZWFkIDxiPm5vcnRoZWFzdDwvYj4gdG93YXJkIDxiPjExdGggU3Q8L2I+Lzx3YnIvPjxiPjEydGggU3Q8L2I+IC0gMC4xIG1pPGJyPkNvbnRpbnVlIG9udG8gPGI+MTF0aCBTdDwvYj4vPHdici8+PGI+MTJ0aCBTdDwvYj4gLSAzNTggZnQ8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPkNob3BwZXIgQ2lyPC9iPiAtIDMyOCBmdDxicj5Db250aW51ZSBvbnRvIDxiPldld2F0dGEgU3Q8L2I+IC0gMC45IG1pPGJyPlR1cm4gPGI+cmlnaHQ8L2I+IG9udG8gPGI+MjJuZCBTdDwvYj4gLSAwLjMgbWk8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPk1hcmtldCBTdDwvYj4gLSA0ODIgZnQ8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPlBhcmsgQXZlIFc8L2I+IC0gMC4xIG1pPGJyPlR1cm4gPGI+cmlnaHQ8L2I+IGF0IDxiPldhemVlIFN0PC9iPiAtIDAuMSBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IC0gMjIwIGZ0PGJyPlR1cm4gPGI+bGVmdDwvYj4gLSAwLjMgbWk8YnI+VHVybiA8Yj5sZWZ0PC9iPiAtIDExNSBmdDxicj4=",
-                        "eta": 3380
+                        "eta": 9,
+                        "travel_dist": 3380
                     },
-                    "timestamp_unix": 1586897310
+                    "timestamp_unix": 1586900213
                 }
             ]
         }
