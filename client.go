@@ -1,4 +1,4 @@
-//go:generate godocdown -o README.md
+//go:generate godocdown -o DOCS.md
 
 package geodb_go
 
