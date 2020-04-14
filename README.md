@@ -44,6 +44,17 @@ volumes:
 
 ```
 
+geodb.env:
+
+```..env
+GEODB_PORT (optional) default: :8080
+GEODB_PATH (optional) default: /tmp/geodb
+GEODB_GC_INTERVAL (optional) default: 5m
+GEODB_PASSWORD (optional) 
+GEODB_GMAPS_KEY (optional)
+
+```
+
 Up:
 
     docker-compose -f docker-compose.yml pull
