@@ -32,7 +32,9 @@ type ClientConfig struct {
 func NewClient(ctx context.Context, cfg *ClientConfig) (*Client, error) {
 	unary := []grpc.UnaryClientInterceptor{}
 	stream := []grpc.StreamClientInterceptor{}
-	opts := []grpc.DialOption{}
+	opts := []grpc.DialOption{
+		grpc.WithInsecure(),
+	}
 	if cfg.Metrics {
 		var promInterceptor = promgrpc.NewInterceptor(promgrpc.InterceptorOpts{})
 		if err := prometheus.DefaultRegisterer.Register(promInterceptor); err != nil {
@@ -79,9 +81,9 @@ type ObjectStreamGetter interface {
 //StreamHandler executes logic on an object stream
 type StreamHandler func(ctx context.Context, stream ObjectStreamGetter, err error)
 
-//Ping - input: empty, output: returns ok if server is healthy.
-func (c Client) Ping(ctx context.Context, r *api.PingRequest) (*api.PingResponse, error) {
-	return c.client.Ping(c.authFn(ctx), r)
+//Ping - output: returns ok if server is healthy.
+func (c Client) Ping(ctx context.Context) (*api.PingResponse, error) {
+	return c.client.Ping(c.authFn(ctx), &api.PingRequest{})
 }
 
 //Set - input: an array of objects output: returns an indexed map of updated object details.
