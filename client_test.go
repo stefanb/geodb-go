@@ -281,8 +281,8 @@ func TestClient_ScanBound(t *testing.T) {
 
 func TestClient_Delete(t *testing.T) {
 	//Delete deletes an array of objects. if the first string is *, all objects will be dropped from the database
-	resp, err := client.Delete(context.Background(), &api.DeleteRequest{
-		Keys: []string{"rider_1"},
+	_, err := client.Delete(context.Background(), &api.DeleteRequest{
+		Keys: []string{"*"},
 	})
 	if err != nil {
 		t.Fatal(err.Error())
