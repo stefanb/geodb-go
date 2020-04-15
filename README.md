@@ -213,7 +213,7 @@ Pretty JSON Response:
             "city": "Denver"
         },
         "timezone": "America/Denver",
-        "events": [
+        "tracker_events": [
             {
                 "object": {
                     "key": "driver_1",
@@ -379,7 +379,7 @@ Pretty JSON Response:
             "city": "Denver"
         },
         "timezone": "America/Denver",
-        "events": [
+        "tracker_events": [
             {
                 "object": {
                     "key": "rider_1",
@@ -528,7 +528,7 @@ Pretty JSON Response:
             "city": "Denver"
         },
         "timezone": "America/Denver",
-        "events": [
+        "tracker_events": [
             {
                 "object": {
                     "key": "rider_1",
