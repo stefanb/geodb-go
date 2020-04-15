@@ -442,6 +442,157 @@ Pretty JSON Response:
 
 HTML Directions are base-64 encoded
 
+#### Pickup Rider
+Update Lat/Lon to close to the rider. If the Driver and Riders Boundaries intersect, the trackers "inside" will be true to indicate they are at the same location
+
+```go
+//update driver location to near the driver to simulate a pickup
+	driverArrivalDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.74863815307619,
+				Lon: -105.0076217651367,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
+			},
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						//track relationship to rider
+						TargetObjectKey: "rider_1",
+						TrackDirections: false, //get directions to pickup rider
+						TrackDistance:   true,  //track distance to rider
+						TrackEta:        true,  //track eta to rider
+					},
+					{
+						//track relationship to destination
+						TargetObjectKey: "destination_1",
+						TrackDirections: true, //get directions to dropoff rider
+						TrackDistance:   true, //track distance to riders destination
+						TrackEta:        true, //track eta to rider destination
+					},
+				},
+			},
+			GetAddress:  true,                                       //true to get human readable address of current location on object detail
+			GetTimezone: true,                                       //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(5 * time.Minute).UnixNano(), //unix expiration timestamp, 0 for never expire
+		},
+	})
+```
+
+Pretty JSON Response: 
+
+```json
+{
+    "object": {
+        "object": {
+            "key": "driver_1",
+            "point": {
+                "lat": 39.74863815307619,
+                "lon": -105.0076217651367
+            },
+            "radius": 100,
+            "tracking": {
+                "trackers": [
+                    {
+                        "target_object_key": "rider_1",
+                        "track_distance": true,
+                        "track_eta": true
+                    },
+                    {
+                        "target_object_key": "destination_1",
+                        "track_directions": true,
+                        "track_distance": true,
+                        "track_eta": true
+                    }
+                ]
+            },
+            "metadata": {
+                "type": "driver"
+            },
+            "get_address": true,
+            "get_timezone": true,
+            "expires_unix": 1586919701045993000,
+            "updated_unix": 1586919401
+        },
+        "address": {
+            "state": "Colorado",
+            "address": "1000 Chopper Cir, Denver, CO 80204, USA",
+            "country": "United States",
+            "zip": "80204",
+            "county": "Denver County",
+            "city": "Denver"
+        },
+        "timezone": "America/Denver",
+        "events": [
+            {
+                "object": {
+                    "key": "rider_1",
+                    "point": {
+                        "lat": 39.74863815307617,
+                        "lon": -105.00762176513672
+                    },
+                    "radius": 100,
+                    "tracking": {
+                        "trackers": [
+                            {
+                                "target_object_key": "driver_1",
+                                "track_distance": true,
+                                "track_eta": true
+                            }
+                        ]
+                    },
+                    "metadata": {
+                        "type": "rider"
+                    },
+                    "get_address": true,
+                    "get_timezone": true,
+                    "updated_unix": 1586919400
+                },
+                "distance": 2.666476830861055e-9,
+                "inside": true,
+                "direction": {},
+                "timestamp_unix": 1586919401
+            },
+            {
+                "object": {
+                    "key": "destination_1",
+                    "point": {
+                        "lat": 39.71670913696289,
+                        "lon": -104.95344543457031
+                    },
+                    "radius": 100,
+                    "metadata": {
+                        "type": "destination"
+                    },
+                    "get_address": true,
+                    "get_timezone": true,
+                    "expires_unix": 1587005800393783000,
+                    "updated_unix": 1586919400
+                },
+                "distance": 5843.27595555179,
+                "direction": {
+                    "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogVW5uYW1lZCBSb2FkLCBEZW52ZXIsIENPIDgwMjA5LCBVU0E8L2g1PkhlYWQgPGI+bm9ydGhlYXN0PC9iPiB0b3dhcmQgPGI+MTF0aCBTdDwvYj4vPHdici8+PGI+MTJ0aCBTdDwvYj4gLSAwLjEgbWk8YnI+Q29udGludWUgb250byA8Yj4xMXRoIFN0PC9iPi88d2JyLz48Yj4xMnRoIFN0PC9iPiAtIDM1OCBmdDxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+Q2hvcHBlciBDaXI8L2I+IC0gMzI4IGZ0PGJyPlR1cm4gPGI+cmlnaHQ8L2I+IG9udG8gPGI+U3BlZXIgQmx2ZDwvYj4gLSAxLjcgbWk8YnI+S2VlcCA8Yj5sZWZ0PC9iPiB0byBzdGF5IG9uIDxiPlNwZWVyIEJsdmQ8L2I+IC0gMS4yIG1pPGJyPkNvbnRpbnVlIG9udG8gPGI+RSAxc3QgQXZlPC9iPiAtIDEuMiBtaTxicj5UdXJuIDxiPnJpZ2h0PC9iPiBvbnRvIDxiPlN0ZWVsZSBTdDwvYj4gLSAwLjEgbWk8YnI+VHVybiA8Yj5yaWdodDwvYj4gYXQgdGhlIDFzdCBjcm9zcyBzdHJlZXQgYXQgPGI+RSBFbGxzd29ydGggQXZlPC9iPiAtIDE2NyBmdDxicj5Db250aW51ZSBzdHJhaWdodCAtIDAuMiBtaTxicj4=",
+                    "eta": 13,
+                    "travel_dist": 7548
+                },
+                "timestamp_unix": 1586919401
+            }
+        ]
+    }
+}
+```
+
+The driver has now entered the pickup location
+
+You may use a similar workflow to dropoff the driver at the destination
+
+It is assumed that the client will open streams(see below) and push updates to client devices(perhaps via websockets) 
+
 ### Other Functionality
 
 #### Streaming Object Updates

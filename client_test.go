@@ -189,6 +189,46 @@ func TestClient_Set(t *testing.T) {
 	}
 	prettyJson("updating driver", driverDetail)
 
+	//update driver location to near the driver to simulate a pickup
+	driverArrivalDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.74863815307619,
+				Lon: -105.0076217651367,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
+			},
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						//track relationship to rider
+						TargetObjectKey: "rider_1",
+						TrackDirections: false, //get directions to pickup rider
+						TrackDistance:   true,  //track distance to rider
+						TrackEta:        true,  //track eta to rider
+					},
+					{
+						//track relationship to destination
+						TargetObjectKey: "destination_1",
+						TrackDirections: true, //get directions to dropoff rider
+						TrackDistance:   true, //track distance to riders destination
+						TrackEta:        true, //track eta to rider destination
+					},
+				},
+			},
+			GetAddress:  true,                                       //true to get human readable address of current location on object detail
+			GetTimezone: true,                                       //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(5 * time.Minute).UnixNano(), //unix expiration timestamp, 0 for never expire
+		},
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	prettyJson("updating driver for arrival", driverArrivalDetail)
 }
 
 func TestClient_Get(t *testing.T) {
