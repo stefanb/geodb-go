@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   db:
-    image: colemanword/geodb:latest
+    image: colemanword/geodb:0.0.21
     env_file:
       - geodb.env
     ports:

@@ -239,7 +239,7 @@ func TestClient_Get(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if len(resp.Objects) != 3 {
-		t.Fatal("expected 3 results")
+		t.Fatalf("expected 3 results got %v", len(resp.Objects))
 	}
 	prettyJson("TestClient_Get", resp)
 }
@@ -299,7 +299,7 @@ func TestClient_GetRegexKeys(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 	if len(resp.Keys) != 1 {
-		t.Fatal("expected 1 result")
+		t.Fatalf("expected 1 result got %v", len(resp.Keys))
 	}
 	prettyJson("TestClient_GetRegexKeys", resp)
 }
@@ -319,6 +319,49 @@ func TestClient_ScanBound(t *testing.T) {
 	prettyJson("TestClient_ScanBound", resp)
 }
 
+func TestClientLoad(t *testing.T) {
+	for i := 0; i < 1000; i ++ {
+		_, err := client.Set(context.Background(), &api.SetRequest{
+			Object: &api.Object{
+				Key: fmt.Sprintf("driver_1_%v", time.Now().UnixNano()), //its recommended to prefix keys or create a regex pattern for ease of querying data
+				Point: &api.Point{
+					Lat: 39.756378173828125,
+					Lon: -104.99414825439453,
+				},
+				Radius: 100, //object radius for determining when objects intersect
+				Metadata: map[string]string{ //optional object metadata
+					"type": "driver",
+				},
+				Tracking: &api.ObjectTracking{ //optional, defaults to driving
+					TravelMode: api.TravelMode_Driving,
+					Trackers: []*api.ObjectTracker{
+						{
+							//track relationship to rider
+							TargetObjectKey: "rider_1",
+							TrackDirections: false, //get directions to pickup rider
+							TrackDistance:   true,  //track distance to rider
+							TrackEta:        true,  //track eta to rider
+						},
+						{
+							//track relationship to destination
+							TargetObjectKey: "destination_1",
+							TrackDirections: true, //get directions to dropoff rider
+							TrackDistance:   true, //track distance to riders destination
+							TrackEta:        true, //track eta to rider destination
+						},
+					},
+				},
+				GetAddress:  true,                                       //true to get human readable address of current location on object detail
+				GetTimezone: true,                                       //true to get timezone of current location on object detail
+				ExpiresUnix: time.Now().Add(5 * time.Minute).UnixNano(), //unix expiration timestamp, 0 for never expire
+			},
+		})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+	}
+}
+
 func TestClient_Delete(t *testing.T) {
 	//Delete deletes an array of objects. if the first string is *, all objects will be dropped from the database
 	_, err := client.Delete(context.Background(), &api.DeleteRequest{
@@ -326,5 +369,12 @@ func TestClient_Delete(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err.Error())
+	}
+	resp, err := client.Get(context.Background(), &api.GetRequest{})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	if len(resp.Objects) > 0 {
+		t.Fatal("expected 0 objects")
 	}
 }
