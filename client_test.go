@@ -36,66 +36,6 @@ var (
 		Lat: 41.1353874206543,
 		Lon: -104.8226089477539,
 	}
-	objects = []*api.Object{{
-		Key:    "testing_coors",
-		Point:  coorsField,
-		Radius: 100,
-		Tracking: &api.ObjectTracking{
-			TravelMode: api.TravelMode_Driving,
-		},
-		Metadata: map[string]string{
-			"type": "sports",
-		},
-		GetAddress:  true,
-		GetTimezone: true,
-		ExpiresUnix: 0,
-	},
-		{
-
-			Key:    "testing_pepsi_center",
-			Point:  pepsiCenter,
-			Radius: 100,
-			Tracking: &api.ObjectTracking{
-				TravelMode: api.TravelMode_Driving,
-				Trackers: []*api.ObjectTracker{
-					{
-						TargetObjectKey: "testing_coors",
-						TrackDirections: true,
-						TrackDistance:   true,
-						TrackEta:        true,
-					},
-				},
-			},
-			Metadata: map[string]string{
-				"type": "sports",
-			},
-			GetAddress:  true,
-			GetTimezone: true,
-			ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
-		},
-		{
-			Key:    "malls_cherry_creek_mall",
-			Point:  cherryCreekMall,
-			Radius: 100,
-			Tracking: &api.ObjectTracking{
-				TravelMode: api.TravelMode_Driving,
-				Trackers: []*api.ObjectTracker{
-					{
-						TargetObjectKey: "testing_pepsi_center",
-						TrackDirections: true,
-						TrackDistance:   true,
-						TrackEta:        true,
-					},
-				},
-			},
-			Metadata: map[string]string{
-				"type": "mall",
-			},
-			GetAddress:  true,
-			GetTimezone: true,
-			ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
-		},
-	}
 )
 
 func prettyJson(test string, obj interface{}) {
@@ -129,82 +69,126 @@ func TestMain(t *testing.M) {
 }
 
 func TestClient_Set(t *testing.T) {
-	resp, err := client.Set(context.Background(), &api.SetRequest{
-		Objects: []*api.Object{
-			{
-				Key: "testing_coors",
-				Point: &api.Point{
-					Lat: 39.756378173828125,
-					Lon: -104.99414825439453,
-				},
-				Radius: 100,
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving,
-				},
-				Metadata: map[string]string{
-					"type": "sports",
-				},
-				GetAddress:  true,
-				GetTimezone: true,
-				ExpiresUnix: 0,
+	//create a driver object
+	driverDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.756378173828125,
+				Lon: -104.99414825439453,
 			},
-			{
-
-				Key: "testing_pepsi_center",
-				Point: &api.Point{
-					Lat: 39.74863815307617,
-					Lon: -105.00762176513672,
-				},
-				Radius: 100,
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving,
-					Trackers: []*api.ObjectTracker{
-						{
-							TargetObjectKey: "testing_coors",
-							TrackDirections: true,
-							TrackDistance:   true,
-							TrackEta:        true,
-						},
-					},
-				},
-				Metadata: map[string]string{
-					"type": "sports",
-				},
-				GetAddress:  true,
-				GetTimezone: true,
-				ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
 			},
-			{
-				Key: "malls_cherry_creek_mall",
-				Point: &api.Point{
-					Lat: 39.71670913696289,
-					Lon: -104.95344543457031,
-				},
-				Radius: 100,
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving,
-					Trackers: []*api.ObjectTracker{
-						{
-							TargetObjectKey: "testing_pepsi_center",
-							TrackDirections: true,
-							TrackDistance:   true,
-							TrackEta:        true,
-						},
-					},
-				},
-				Metadata: map[string]string{
-					"type": "mall",
-				},
-				GetAddress:  true,
-				GetTimezone: true,
-				ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
-			},
+			GetAddress:  true, //true to get human readable address of current location on object detail
+			GetTimezone: true, //true to get timezone of current location on object detail
+			ExpiresUnix: 0,    //unix expiration timestamp, 0 for never expire
 		},
 	})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	prettyJson("TestClient_Set", resp)
+	prettyJson("creating driver", driverDetail)
+
+	//create a rider object
+	riderDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "rider_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.74863815307617,
+				Lon: -105.00762176513672,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						TargetObjectKey: "driver_1",
+						TrackDirections: false, //
+						TrackDistance:   true,
+						TrackEta:        true,
+					},
+				},
+			},
+			Metadata: map[string]string{ //optional object metadata
+				"type": "rider",
+			},
+			GetAddress:  true, //true to get human readable address of current location on object detail
+			GetTimezone: true, //true to get timezone of current location on object detail
+			ExpiresUnix: 0,    //unix expiration timestamp, 0 for never expire
+		},
+	})
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	prettyJson("creating rider", riderDetail)
+
+	//create a rider destination object
+	riderDestinationDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "destination_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.71670913696289,
+				Lon: -104.95344543457031,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "destination",
+			},
+			GetAddress:  true,                                      //true to get human readable address of current location on object detail
+			GetTimezone: true,                                      //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(24 * time.Hour).UnixNano(), //automatically cleanup destination
+		},
+	})
+
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	prettyJson("creating rider destination", riderDestinationDetail)
+
+	//update driver to pickup rider with a tracker to get google maps directions, eta, and travel distance
+	driverDetail, err = client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.756378173828125,
+				Lon: -104.99414825439453,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
+			},
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						//track relationship to rider
+						TargetObjectKey: "rider_1",
+						TrackDirections: false, //get directions to pickup rider
+						TrackDistance:   true,  //track distance to rider
+						TrackEta:        true,  //track eta to rider
+					},
+					{
+						//track relationship to destination
+						TargetObjectKey: "destination_1",
+						TrackDirections: true, //get directions to dropoff rider
+						TrackDistance:   true, //track distance to riders destination
+						TrackEta:        true, //track eta to rider destination
+					},
+				},
+			},
+			GetAddress:  true,                                       //true to get human readable address of current location on object detail
+			GetTimezone: true,                                       //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(5 * time.Minute).UnixNano(), //unix expiration timestamp, 0 for never expire
+		},
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	prettyJson("updating driver", driverDetail)
+
 }
 
 func TestClient_Get(t *testing.T) {
@@ -222,7 +206,7 @@ func TestClient_Get(t *testing.T) {
 
 func TestClient_GetPrefix(t *testing.T) {
 	resp, err := client.GetPrefix(context.Background(), &api.GetPrefixRequest{
-		Prefix: "malls_",
+		Prefix: "driver_",
 	})
 	if err != nil {
 		t.Fatal(err.Error())
@@ -235,7 +219,7 @@ func TestClient_GetPrefix(t *testing.T) {
 
 func TestClient_GetRegex(t *testing.T) {
 	resp, err := client.GetRegex(context.Background(), &api.GetRegexRequest{
-		Regex: "malls_*",
+		Regex: "driver_*",
 	})
 	if err != nil {
 		t.Fatal(err.Error())
@@ -251,15 +235,12 @@ func TestClient_GetKeys(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	if len(resp.Keys) != len(objects) {
-		t.Fatalf("expected %v result", len(objects))
-	}
 	prettyJson("TestClient_GetKeys", resp)
 }
 
 func TestClient_GetPrefixKeys(t *testing.T) {
 	resp, err := client.GetPrefixKeys(context.Background(), &api.GetPrefixKeysRequest{
-		Prefix: "malls_",
+		Prefix: "driver_",
 	})
 	if err != nil {
 		t.Fatal(err.Error())
@@ -272,7 +253,7 @@ func TestClient_GetPrefixKeys(t *testing.T) {
 
 func TestClient_GetRegexKeys(t *testing.T) {
 	resp, err := client.GetRegexKeys(context.Background(), &api.GetRegexKeysRequest{
-		Regex: "malls_*",
+		Regex: "driver_*",
 	})
 	if err != nil {
 		t.Fatal(err.Error())
@@ -286,13 +267,47 @@ func TestClient_GetRegexKeys(t *testing.T) {
 func TestClient_ScanBound(t *testing.T) {
 	//ScanBound scans a give geolocation boundary for objects, use regex/prefix methods to filter objects
 	resp, err := client.ScanBound(context.Background(), &api.ScanBoundRequest{
+		//a bound is like a circle on a map
 		Bound: &api.Bound{
-			Corner:         cheyenneWhyoming, //top left corner
-			OppositeCorner: pepsiCenter,      //bottom right corner
+			Center: pepsiCenter, //center
+			Radius: 5000,        //radius
 		},
 	})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 	prettyJson("TestClient_ScanBound", resp)
+}
+
+func TestClient_SetLoad(t *testing.T) {
+	now := time.Now()
+	objects := []*api.Object{}
+	for i := 0; i < 100; i++ {
+		objects = append(objects, &api.Object{
+			Key:    fmt.Sprintf("testing_pepsi_center_%v", time.Now().UnixNano()),
+			Point:  pepsiCenter,
+			Radius: 100,
+			Metadata: map[string]string{
+				"type": "sports",
+			},
+			GetAddress:  false,
+			GetTimezone: false,
+			ExpiresUnix: time.Now().Add(1 * time.Minute).Unix(),
+		})
+	}
+	for _, object := range objects {
+		_, err := client.Set(context.Background(), &api.SetRequest{
+			Object: object,
+		})
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+	}
+
+	var Duration = struct {
+		Nano int64
+	}{
+		Nano: time.Since(now).Nanoseconds(),
+	}
+	prettyJson("TestClient_SetLoad", &Duration)
 }

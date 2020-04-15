@@ -46,7 +46,7 @@ volumes:
 
 geodb.env:
 
-```..env
+```.env
 GEODB_PORT (optional) default: :8080
 GEODB_PATH (optional) default: /tmp/geodb
 GEODB_GC_INTERVAL (optional) default: 5m
@@ -84,79 +84,26 @@ client, err  = geodb_go.NewClient(context.Background(), &geodb_go.ClientConfig{
 	fmt.Printf("Geodb server healthy= %v\n", resp.Ok)
 ```
 
-### Storing Object Geolocation Data
+### Short Example - Uber-like functionality for ride-sharing
+
+#### Create a Driver
 
 ```go
-resp, err := client.Set(context.Background(), &api.SetRequest{
-		Objects:              []*api.Object{
-			{
-				Key:    "testing_coors", //its recommended to prefix keys or create a regex pattern for ease of querying data
-				Point:  &api.Point{
-					Lat: 39.756378173828125,
-					Lon: -104.99414825439453,
-				},
-				Radius: 100, //radius of the object- this is used to determine when objects are overlapping(Geofencing) to determine if theyre in the same place
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving,
-				},
-				Metadata: map[string]string{ //optional metadata about the object
-						"type": "sports",
-				},
-				GetAddress:  true, //true if you want a human readable address in the object detail response
-                GetTimezone: true, //true if you want the timezone in the object detail response
-				ExpiresUnix: 0, //0 means never expire
+//create a driver object
+	driverDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.756378173828125,
+				Lon: -104.99414825439453,
 			},
-			{
-
-				Key:    "testing_pepsi_center",
-				Point:  &api.Point{
-					Lat: 39.74863815307617,
-					Lon: -105.00762176513672,
-				}, 
-				Radius: 100, //radius of the object- this is used to determine when objects are overlapping(Geofencing) to determine if theyre in the same place
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving, //different travel modes impact directions and eta for trackers below
-					Trackers: []*api.ObjectTracker{
-						{
-							TargetObjectKey: "testing_coors",
-							TrackDirections: true, //adds google maps directions to this object in object detail response
-                            TrackDistance:   true, //adds real-distance to this object in object detail response
-                            TrackEta:        true, //adds eta(depending on travel mode) to this object in object detail response
-                         },
-					},
-				},
-				Metadata: map[string]string{ //optional metadata about the object
-					"type": "sports",
-				},
-				GetAddress:  true, //true if you want a human readable address in the object detail response
-				GetTimezone: true, //true if you want the timezone in the object detail response
-				ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(), //automatically expire this object on the unix timestamp, leave empty if no expiration
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
 			},
-			{
-				Key:    "malls_cherry_creek_mall",
-				Point:  &api.Point{
-					Lat: 39.71670913696289,
-					Lon: -104.95344543457031,
-				},
-				Radius: 100, //radius of the object- this is used to determine when objects are overlapping(Geofencing) to determine if theyre in the same place
-				Tracking: &api.ObjectTracking{
-					TravelMode: api.TravelMode_Driving, //different travel modes impact directions and eta for trackers below
-					Trackers: []*api.ObjectTracker{ //add trackers to track the objects geolocation in relation to another
-						{
-							TargetObjectKey: "testing_pepsi_center", //the object to track, must exist in database already
-							TrackDirections: true, //adds google maps directions to this object in object detail response
-							TrackDistance:   true, //adds real-distance to this object in object detail response
-							TrackEta:        true, //adds eta(depending on travel mode) to this object in object detail response
-						},
-					},
-				},
-				Metadata: map[string]string{
-					"type": "mall",
-				},
-				GetAddress:  true,
-				GetTimezone: true,
-				ExpiresUnix: time.Now().Add(5 * time.Minute).Unix(),
-			},
+			GetAddress:  true, //true to get human readable address of current location on object detail
+			GetTimezone: true, //true to get timezone of current location on object detail
+			ExpiresUnix: 0,    //unix expiration timestamp, 0 for never expire
 		},
 	})
 ```
@@ -165,170 +112,335 @@ Pretty JSON Response:
 
 ```json
 {
-    "objects": {
-        "malls_cherry_creek_mall": {
-            "object": {
-                "key": "malls_cherry_creek_mall",
-                "point": {
-                    "lat": 39.71670913696289,
-                    "lon": -104.95344543457031
-                },
-                "radius": 100,
-                "tracking": {
-                    "trackers": [
-                        {
-                            "target_object_key": "testing_pepsi_center",
-                            "track_directions": true,
-                            "track_distance": true,
-                            "track_eta": true
-                        }
-                    ]
-                },
-                "metadata": {
-                    "type": "mall"
-                },
-                "get_address": true,
-                "get_timezone": true,
-                "expires_unix": 1586900513,
-                "updated_unix": 1586900213
+    "object": {
+        "object": {
+            "key": "driver_1",
+            "point": {
+                "lat": 39.756378173828125,
+                "lon": -104.99414825439453
             },
-            "address": {
-                "state": "Colorado",
-                "address": "Unnamed Road, Denver, CO 80209, USA",
-                "country": "United States",
-                "zip": "80209",
-                "county": "Denver County",
-                "city": "Denver"
+            "radius": 100,
+            "metadata": {
+                "type": "driver"
             },
-            "timezone": "America/Denver",
-            "events": [
-                {
-                    "object": {
-                        "key": "testing_pepsi_center",
-                        "point": {
-                            "lat": 39.74863815307617,
-                            "lon": -105.00762176513672
-                        },
-                        "radius": 100,
-                        "tracking": {
-                            "trackers": [
-                                {
-                                    "target_object_key": "testing_coors",
-                                    "track_directions": true,
-                                    "track_distance": true,
-                                    "track_eta": true
-                                }
-                            ]
-                        },
-                        "metadata": {
-                            "type": "sports"
-                        },
-                        "get_address": true,
-                        "get_timezone": true,
-                        "expires_unix": 1586900513,
-                        "updated_unix": 1586900213
-                    },
-                    "distance": 5843.275955551314,
-                    "direction": {
-                        "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogMTAwMCBDaG9wcGVyIENpciwgRGVudmVyLCBDTyA4MDIwNCwgVVNBPC9oNT5IZWFkIDxiPnNvdXRoPC9iPiAtIDAuMyBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+U3RlZWxlIFN0PC9iPiAtIDQzMyBmdDxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+RSAxc3QgQXZlPC9iPiAtIDAuOSBtaTxicj5Db250aW51ZSBzdHJhaWdodCB0byBzdGF5IG9uIDxiPkUgMXN0IEF2ZTwvYj4gLSAwLjMgbWk8YnI+Q29udGludWUgb250byA8Yj5TcGVlciBCbHZkPC9iPiAtIDIuOSBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+Q2hvcHBlciBDaXI8L2I+IC0gMzk3IGZ0PGJyPlR1cm4gPGI+cmlnaHQ8L2I+IG9udG8gPGI+MTF0aCBTdDwvYj4vPHdici8+PGI+MTJ0aCBTdDwvYj4gLSAzNTggZnQ8YnI+U2xpZ2h0IDxiPmxlZnQ8L2I+IC0gMC4xIG1pPGJyPg==",
-                        "eta": 15,
-                        "travel_dist": 7581
-                    },
-                    "timestamp_unix": 1586900213
-                }
-            ]
+            "get_address": true,
+            "get_timezone": true,
+            "updated_unix": 1586917896
         },
-        "testing_coors": {
-            "object": {
-                "key": "testing_coors",
-                "point": {
-                    "lat": 39.756378173828125,
-                    "lon": -104.99414825439453
-                },
-                "radius": 100,
-                "tracking": {},
-                "metadata": {
-                    "type": "sports"
-                },
-                "get_address": true,
-                "get_timezone": true,
-                "updated_unix": 1586900213
-            },
-            "address": {
-                "state": "Colorado",
-                "address": "2001 Blake St, Denver, CO 80205, USA",
-                "country": "United States",
-                "zip": "80205",
-                "county": "Denver County",
-                "city": "Denver"
-            },
-            "timezone": "America/Denver"
+        "address": {
+            "state": "Colorado",
+            "address": "2001 Blake St, Denver, CO 80205, USA",
+            "country": "United States",
+            "zip": "80205",
+            "county": "Denver County",
+            "city": "Denver"
         },
-        "testing_pepsi_center": {
-            "object": {
-                "key": "testing_pepsi_center",
-                "point": {
-                    "lat": 39.74863815307617,
-                    "lon": -105.00762176513672
-                },
-                "radius": 100,
-                "tracking": {
-                    "trackers": [
-                        {
-                            "target_object_key": "testing_coors",
-                            "track_directions": true,
-                            "track_distance": true,
-                            "track_eta": true
-                        }
-                    ]
-                },
-                "metadata": {
-                    "type": "sports"
-                },
-                "get_address": true,
-                "get_timezone": true,
-                "expires_unix": 1586900513,
-                "updated_unix": 1586900213
-            },
-            "address": {
-                "state": "Colorado",
-                "address": "1000 Chopper Cir, Denver, CO 80204, USA",
-                "country": "United States",
-                "zip": "80204",
-                "county": "Denver County",
-                "city": "Denver"
-            },
-            "timezone": "America/Denver",
-            "events": [
-                {
-                    "object": {
-                        "key": "testing_coors",
-                        "point": {
-                            "lat": 39.756378173828125,
-                            "lon": -104.99414825439453
-                        },
-                        "radius": 100,
-                        "tracking": {},
-                        "metadata": {
-                            "type": "sports"
-                        },
-                        "get_address": true,
-                        "get_timezone": true,
-                        "updated_unix": 1586900213
-                    },
-                    "distance": 1439.4645850870015,
-                    "direction": {
-                        "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogMjAwMSBCbGFrZSBTdCwgRGVudmVyLCBDTyA4MDIwNSwgVVNBPC9oNT5IZWFkIDxiPm5vcnRoZWFzdDwvYj4gdG93YXJkIDxiPjExdGggU3Q8L2I+Lzx3YnIvPjxiPjEydGggU3Q8L2I+IC0gMC4xIG1pPGJyPkNvbnRpbnVlIG9udG8gPGI+MTF0aCBTdDwvYj4vPHdici8+PGI+MTJ0aCBTdDwvYj4gLSAzNTggZnQ8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPkNob3BwZXIgQ2lyPC9iPiAtIDMyOCBmdDxicj5Db250aW51ZSBvbnRvIDxiPldld2F0dGEgU3Q8L2I+IC0gMC45IG1pPGJyPlR1cm4gPGI+cmlnaHQ8L2I+IG9udG8gPGI+MjJuZCBTdDwvYj4gLSAwLjMgbWk8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPk1hcmtldCBTdDwvYj4gLSA0ODIgZnQ8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPlBhcmsgQXZlIFc8L2I+IC0gMC4xIG1pPGJyPlR1cm4gPGI+cmlnaHQ8L2I+IGF0IDxiPldhemVlIFN0PC9iPiAtIDAuMSBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IC0gMjIwIGZ0PGJyPlR1cm4gPGI+bGVmdDwvYj4gLSAwLjMgbWk8YnI+VHVybiA8Yj5sZWZ0PC9iPiAtIDExNSBmdDxicj4=",
-                        "eta": 9,
-                        "travel_dist": 3380
-                    },
-                    "timestamp_unix": 1586900213
-                }
-            ]
-        }
+        "timezone": "America/Denver"
     }
 }
 ```
+
+
+#### Create a Rider
+
+```go
+//create a rider object
+	riderDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "rider_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.74863815307617,
+				Lon: -105.00762176513672,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						TargetObjectKey: "driver_1",
+						TrackDirections: false, //
+						TrackDistance:   true,
+						TrackEta:        true,
+					},
+				},
+			},
+			Metadata: map[string]string{ //optional object metadata
+				"type": "rider",
+			},
+			GetAddress:  true, //true to get human readable address of current location on object detail
+			GetTimezone: true, //true to get timezone of current location on object detail
+			ExpiresUnix: 0,    //unix expiration timestamp, 0 for never expire
+		},
+	})
+```
+
+Pretty JSON Response: 
+
+```json
+{
+    "object": {
+        "object": {
+            "key": "rider_1",
+            "point": {
+                "lat": 39.74863815307617,
+                "lon": -105.00762176513672
+            },
+            "radius": 100,
+            "tracking": {
+                "trackers": [
+                    {
+                        "target_object_key": "driver_1",
+                        "track_distance": true,
+                        "track_eta": true
+                    }
+                ]
+            },
+            "metadata": {
+                "type": "rider"
+            },
+            "get_address": true,
+            "get_timezone": true,
+            "updated_unix": 1586917896
+        },
+        "address": {
+            "state": "Colorado",
+            "address": "1000 Chopper Cir, Denver, CO 80204, USA",
+            "country": "United States",
+            "zip": "80204",
+            "county": "Denver County",
+            "city": "Denver"
+        },
+        "timezone": "America/Denver",
+        "events": [
+            {
+                "object": {
+                    "key": "driver_1",
+                    "point": {
+                        "lat": 39.756378173828125,
+                        "lon": -104.99414825439453
+                    },
+                    "radius": 100,
+                    "metadata": {
+                        "type": "driver"
+                    },
+                    "get_address": true,
+                    "get_timezone": true,
+                    "updated_unix": 1586917896
+                },
+                "distance": 1439.4645850870015,
+                "direction": {
+                    "eta": 8,
+                    "travel_dist": 3380
+                },
+                "timestamp_unix": 1586917896
+            }
+        ]
+    }
+}
+```
+
+#### Create Rider Destination 
+
+```go
+riderDestinationDetail, err := client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "destination_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.71670913696289,
+				Lon: -104.95344543457031,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "destination",
+			},
+			GetAddress:  true,                                      //true to get human readable address of current location on object detail
+			GetTimezone: true,                                      //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(24 * time.Hour).UnixNano(), //automatically cleanup destination
+		},
+	})
+```
+
+Pretty JSON Response: 
+
+```json
+{
+    "object": {
+        "object": {
+            "key": "destination_1",
+            "point": {
+                "lat": 39.71670913696289,
+                "lon": -104.95344543457031
+            },
+            "radius": 100,
+            "metadata": {
+                "type": "destination"
+            },
+            "get_address": true,
+            "get_timezone": true,
+            "expires_unix": 1587004296815040000,
+            "updated_unix": 1586917896
+        },
+        "address": {
+            "state": "Colorado",
+            "address": "Unnamed Road, Denver, CO 80209, USA",
+            "country": "United States",
+            "zip": "80209",
+            "county": "Denver County",
+            "city": "Denver"
+        },
+        "timezone": "America/Denver"
+    }
+}
+```
+
+#### Update Driver to Track Rider & Riders Destination
+
+```go
+driverDetail, err = client.Set(context.Background(), &api.SetRequest{
+		Object: &api.Object{
+			Key: "driver_1", //its recommended to prefix keys or create a regex pattern for ease of querying data
+			Point: &api.Point{
+				Lat: 39.756378173828125,
+				Lon: -104.99414825439453,
+			},
+			Radius: 100, //object radius for determining when objects intersect
+			Metadata: map[string]string{ //optional object metadata
+				"type": "driver",
+			},
+			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+				TravelMode: api.TravelMode_Driving,
+				Trackers: []*api.ObjectTracker{
+					{
+						//track relationship to rider
+						TargetObjectKey: "rider_1",
+						TrackDirections: false, //get directions to pickup rider
+						TrackDistance:   true,  //track distance to rider
+						TrackEta:        true,  //track eta to rider
+					},
+					{
+						//track relationship to destination
+						TargetObjectKey: "destination_1",
+						TrackDirections: true, //get directions to dropoff rider
+						TrackDistance:   true, //track distance to riders destination
+						TrackEta:        true, //track eta to rider destination
+					},
+				},
+			},
+			GetAddress:  true,                                       //true to get human readable address of current location on object detail
+			GetTimezone: true,                                       //true to get timezone of current location on object detail
+			ExpiresUnix: time.Now().Add(5 * time.Minute).UnixNano(), //unix expiration timestamp, 0 for never expire
+		},
+	})
+```
+
+Pretty JSON Response: 
+
+```json
+{
+    "object": {
+        "object": {
+            "key": "driver_1",
+            "point": {
+                "lat": 39.756378173828125,
+                "lon": -104.99414825439453
+            },
+            "radius": 100,
+            "tracking": {
+                "trackers": [
+                    {
+                        "target_object_key": "rider_1",
+                        "track_distance": true,
+                        "track_eta": true
+                    },
+                    {
+                        "target_object_key": "destination_1",
+                        "track_directions": true,
+                        "track_distance": true,
+                        "track_eta": true
+                    }
+                ]
+            },
+            "metadata": {
+                "type": "driver"
+            },
+            "get_address": true,
+            "get_timezone": true,
+            "expires_unix": 1586918197040534000,
+            "updated_unix": 1586917897
+        },
+        "address": {
+            "state": "Colorado",
+            "address": "2001 Blake St, Denver, CO 80205, USA",
+            "country": "United States",
+            "zip": "80205",
+            "county": "Denver County",
+            "city": "Denver"
+        },
+        "timezone": "America/Denver",
+        "events": [
+            {
+                "object": {
+                    "key": "rider_1",
+                    "point": {
+                        "lat": 39.74863815307617,
+                        "lon": -105.00762176513672
+                    },
+                    "radius": 100,
+                    "tracking": {
+                        "trackers": [
+                            {
+                                "target_object_key": "driver_1",
+                                "track_distance": true,
+                                "track_eta": true
+                            }
+                        ]
+                    },
+                    "metadata": {
+                        "type": "rider"
+                    },
+                    "get_address": true,
+                    "get_timezone": true,
+                    "updated_unix": 1586917896
+                },
+                "distance": 1439.4645850870015,
+                "direction": {
+                    "eta": 8,
+                    "travel_dist": 2770
+                },
+                "timestamp_unix": 1586917897
+            },
+            {
+                "object": {
+                    "key": "destination_1",
+                    "point": {
+                        "lat": 39.71670913696289,
+                        "lon": -104.95344543457031
+                    },
+                    "radius": 100,
+                    "metadata": {
+                        "type": "destination"
+                    },
+                    "get_address": true,
+                    "get_timezone": true,
+                    "expires_unix": 1587004296815040000,
+                    "updated_unix": 1586917896
+                },
+                "distance": 5625.029340497144,
+                "direction": {
+                    "html_directions": "CjxoNT5EZXN0aW5hdGlvbjogVW5uYW1lZCBSb2FkLCBEZW52ZXIsIENPIDgwMjA5LCBVU0E8L2g1PkhlYWQgPGI+bm9ydGh3ZXN0PC9iPiAtIDExNSBmdDxicj5UdXJuIDxiPnJpZ2h0PC9iPiAtIDAuMyBtaTxicj5UdXJuIDxiPnJpZ2h0PC9iPiAtIDIyMCBmdDxicj5UdXJuIDxiPnJpZ2h0PC9iPiB0b3dhcmQgPGI+UGFyayBBdmUgVzwvYj4gLSAwLjEgbWk8YnI+VHVybiA8Yj5yaWdodDwvYj4gYXQgdGhlIDFzdCBjcm9zcyBzdHJlZXQgb250byA8Yj5QYXJrIEF2ZSBXPC9iPiAtIDAuMSBtaTxicj5UdXJuIDxiPmxlZnQ8L2I+IG9udG8gPGI+V2V3YXR0YSBTdDwvYj4gLSAwLjkgbWk8YnI+VHVybiA8Yj5sZWZ0PC9iPiBvbnRvIDxiPlNwZWVyIEJsdmQ8L2I+IC0gMS43IG1pPGJyPktlZXAgPGI+bGVmdDwvYj4gdG8gc3RheSBvbiA8Yj5TcGVlciBCbHZkPC9iPiAtIDEuMiBtaTxicj5Db250aW51ZSBvbnRvIDxiPkUgMXN0IEF2ZTwvYj4gLSAxLjIgbWk8YnI+VHVybiA8Yj5yaWdodDwvYj4gb250byA8Yj5TdGVlbGUgU3Q8L2I+IC0gMC4xIG1pPGJyPlR1cm4gPGI+cmlnaHQ8L2I+IGF0IHRoZSAxc3QgY3Jvc3Mgc3RyZWV0IGF0IDxiPkUgRWxsc3dvcnRoIEF2ZTwvYj4gLSAxNjcgZnQ8YnI+Q29udGludWUgc3RyYWlnaHQgLSAwLjIgbWk8YnI+",
+                    "eta": 18,
+                    "travel_dist": 9584
+                },
+                "timestamp_unix": 1586917897
+            }
+        ]
+    }
+}
+```
+
+HTML Directions are base-64 encoded
+
+### Other Functionality
 
 #### Streaming Object Updates
 
@@ -366,7 +478,7 @@ for _, object := range resp.Objects {
 
 ```go
 resp, err := client.GetPrefix(context.Background(), &api.GetPrefixRequest{
-		Prefix: "malls_",
+		Prefix: "driver_",
 	})
 	for _, object := range resp.Objects {
 		fmt.Println(object.String())
@@ -377,7 +489,7 @@ resp, err := client.GetPrefix(context.Background(), &api.GetPrefixRequest{
 
 ```go
 resp, err := client.GetRegex(context.Background(), &api.GetRegexRequest{
-		Regex: "malls_*",
+		Regex: "driver_*",
 	})
 for _, object := range resp.Objects {
 		fmt.Println(object.String())
@@ -388,12 +500,18 @@ for _, object := range resp.Objects {
 ```go
 //ScanBound scans a give geolocation boundary for objects, use regex/prefix methods to filter objects
 	resp, err := client.ScanBound(context.Background(), &api.ScanBoundRequest{
+		//a bound is like a circle on a map
 		Bound: &api.Bound{
-			Corner:               cheyenneWhyoming, //top left corner
-			OppositeCorner:       pepsiCenter,//bottom right corner
+			Center: &api.Point{
+				Lat: 39.74863815307617,
+				Lon: -105.00762176513672,
+			}, //center
+			Radius: 5000,        //radius
 		},
 	})
 ```
+
+
 ## API Docs
 
 - Client API Docs can be found [here](https://github.com/autom8ter/geodb-go/blob/master/DOCS.md)

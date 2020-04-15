@@ -27,6 +27,8 @@ github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4/go.mod h1:ybxpYRF
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/autom8ter/geodb v0.0.12 h1:3rfWqNL2L6kv2MeOSbPKv0gCuP06LMtLDwbDL2J1hlY=
 github.com/autom8ter/geodb v0.0.12/go.mod h1:d2vYtvZSLpc653wskpa+LVF8PMePziPGmUtmGcC4JAI=
+github.com/autom8ter/geodb v0.0.15 h1:LrrMoJqIIG9JyYhzgXcmjKiNPySMLIIgz9ndYvbdtf4=
+github.com/autom8ter/geodb v0.0.15/go.mod h1:d2vYtvZSLpc653wskpa+LVF8PMePziPGmUtmGcC4JAI=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
