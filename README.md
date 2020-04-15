@@ -153,12 +153,14 @@ Pretty JSON Response:
 				Lon: -105.00762176513672,
 			},
 			Radius: 100, //object radius for determining when objects intersect
-			Tracking: &api.ObjectTracking{ //optional, defaults to driving
+			Tracking: &api.ObjectTracking{ 
+				//optional, defaults to driving
 				TravelMode: api.TravelMode_Driving,
+				//track riders location relationship to the driver
 				Trackers: []*api.ObjectTracker{
 					{
 						TargetObjectKey: "driver_1",
-						TrackDirections: false, //
+						TrackDirections: false, //no need to get directions to driver
 						TrackDistance:   true,
 						TrackEta:        true,
 					},
