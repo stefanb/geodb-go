@@ -279,35 +279,12 @@ func TestClient_ScanBound(t *testing.T) {
 	prettyJson("TestClient_ScanBound", resp)
 }
 
-func TestClient_SetLoad(t *testing.T) {
-	now := time.Now()
-	objects := []*api.Object{}
-	for i := 0; i < 100; i++ {
-		objects = append(objects, &api.Object{
-			Key:    fmt.Sprintf("testing_pepsi_center_%v", time.Now().UnixNano()),
-			Point:  pepsiCenter,
-			Radius: 100,
-			Metadata: map[string]string{
-				"type": "sports",
-			},
-			GetAddress:  false,
-			GetTimezone: false,
-			ExpiresUnix: time.Now().Add(1 * time.Minute).Unix(),
-		})
+func TestClient_Delete(t *testing.T) {
+	//Delete deletes an array of objects. if the first string is *, all objects will be dropped from the database
+	resp, err := client.Delete(context.Background(), &api.DeleteRequest{
+		Keys: []string{"rider_1"},
+	})
+	if err != nil {
+		t.Fatal(err.Error())
 	}
-	for _, object := range objects {
-		_, err := client.Set(context.Background(), &api.SetRequest{
-			Object: object,
-		})
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-	}
-
-	var Duration = struct {
-		Nano int64
-	}{
-		Nano: time.Since(now).Nanoseconds(),
-	}
-	prettyJson("TestClient_SetLoad", &Duration)
 }
